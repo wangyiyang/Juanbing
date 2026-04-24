@@ -40,14 +40,28 @@ function createDatabase() {
   return { sqlite, db };
 }
 
-const existingSqlite = globalForDb.__juanbingSqlite;
-const existingDb = globalForDb.__juanbingDb;
+function getDatabase(): { sqlite: Database.Database; db: AppDatabase } {
+  const existingSqlite = globalForDb.__juanbingSqlite;
+  const existingDb = globalForDb.__juanbingDb;
 
-if (!existingSqlite || !existingDb) {
+  if (existingSqlite && existingDb) {
+    return { sqlite: existingSqlite, db: existingDb };
+  }
+
   const { sqlite, db } = createDatabase();
   globalForDb.__juanbingSqlite = sqlite;
   globalForDb.__juanbingDb = db;
+  return { sqlite, db };
 }
 
-export const sqlite = globalForDb.__juanbingSqlite!;
-export const db = globalForDb.__juanbingDb!;
+export const sqlite = new Proxy({} as Database.Database, {
+  get(_target, prop) {
+    return getDatabase().sqlite[prop as keyof Database.Database];
+  },
+});
+
+export const db = new Proxy({} as AppDatabase, {
+  get(_target, prop) {
+    return getDatabase().db[prop as keyof AppDatabase];
+  },
+});

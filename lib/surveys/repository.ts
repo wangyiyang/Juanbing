@@ -22,157 +22,192 @@ function parseConfig(raw: string | null) {
 }
 
 function mapQuestionOptions(questionId: number): SurveyOptionInput[] {
-  return db
-    .select()
-    .from(surveyOptions)
-    .where(eq(surveyOptions.questionId, questionId))
-    .orderBy(asc(surveyOptions.orderIndex))
-    .all()
-    .map((option) => ({
-      id: option.id,
-      label: option.label,
-      value: option.value,
-      orderIndex: option.orderIndex,
-    }));
+  try {
+    return db
+      .select()
+      .from(surveyOptions)
+      .where(eq(surveyOptions.questionId, questionId))
+      .orderBy(asc(surveyOptions.orderIndex))
+      .all()
+      .map((option) => ({
+        id: option.id,
+        label: option.label,
+        value: option.value,
+        orderIndex: option.orderIndex,
+      }));
+  } catch (error) {
+    console.error("[repository] mapQuestionOptions failed:", error);
+    throw new Error("数据库查询失败：无法加载选项");
+  }
 }
 
 function mapSurveyDetail(id: number): SurveyDetail | null {
-  const survey = db.select().from(surveys).where(eq(surveys.id, id)).get();
+  try {
+    const survey = db.select().from(surveys).where(eq(surveys.id, id)).get();
 
-  if (!survey) {
-    return null;
+    if (!survey) {
+      return null;
+    }
+
+    const questions: SurveyQuestionDetail[] = db
+      .select()
+      .from(surveyQuestions)
+      .where(eq(surveyQuestions.surveyId, id))
+      .orderBy(asc(surveyQuestions.orderIndex))
+      .all()
+      .map((question) => ({
+        id: question.id,
+        type: question.type,
+        title: question.title,
+        required: question.required,
+        orderIndex: question.orderIndex,
+        config: parseConfig(question.config),
+        options: mapQuestionOptions(question.id),
+      }));
+
+    return {
+      id: survey.id,
+      title: survey.title,
+      description: survey.description,
+      status: survey.status,
+      expiresAt: survey.expiresAt,
+      createdAt: survey.createdAt,
+      updatedAt: survey.updatedAt,
+      questions,
+    };
+  } catch (error) {
+    console.error("[repository] mapSurveyDetail failed:", error);
+    throw new Error("数据库查询失败：无法加载问卷详情");
   }
-
-  const questions: SurveyQuestionDetail[] = db
-    .select()
-    .from(surveyQuestions)
-    .where(eq(surveyQuestions.surveyId, id))
-    .orderBy(asc(surveyQuestions.orderIndex))
-    .all()
-    .map((question) => ({
-      id: question.id,
-      type: question.type,
-      title: question.title,
-      required: question.required,
-      orderIndex: question.orderIndex,
-      config: parseConfig(question.config),
-      options: mapQuestionOptions(question.id),
-    }));
-
-  return {
-    id: survey.id,
-    title: survey.title,
-    description: survey.description,
-    status: survey.status,
-    expiresAt: survey.expiresAt,
-    createdAt: survey.createdAt,
-    updatedAt: survey.updatedAt,
-    questions,
-  };
 }
 
 export async function insertSurvey(input: SurveyInput) {
   const now = Math.floor(Date.now() / 1000);
 
-  return db.transaction((tx) => {
-    const result = tx
-      .insert(surveys)
-      .values({
-        title: input.title,
-        description: input.description ?? null,
-        status: "draft",
-        expiresAt: input.expiresAt ?? null,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .run();
-
-    const surveyId = Number(result.lastInsertRowid);
-
-    for (const question of input.questions) {
-      const questionResult = tx
-        .insert(surveyQuestions)
+  try {
+    return db.transaction((tx) => {
+      const result = tx
+        .insert(surveys)
         .values({
-          surveyId,
-          type: question.type,
-          title: question.title,
-          required: question.required,
-          orderIndex: question.orderIndex,
-          config: serializeConfig(question.config ?? null),
+          title: input.title,
+          description: input.description ?? null,
+          status: "draft",
+          expiresAt: input.expiresAt ?? null,
+          createdAt: now,
+          updatedAt: now,
         })
         .run();
 
-      const questionId = Number(questionResult.lastInsertRowid);
+      const surveyId = Number(result.lastInsertRowid);
 
-      for (const option of question.options ?? []) {
-        tx.insert(surveyOptions)
+      for (const question of input.questions) {
+        const questionResult = tx
+          .insert(surveyQuestions)
           .values({
-            questionId,
-            label: option.label,
-            value: option.value,
-            orderIndex: option.orderIndex,
+            surveyId,
+            type: question.type,
+            title: question.title,
+            required: question.required,
+            orderIndex: question.orderIndex,
+            config: serializeConfig(question.config ?? null),
           })
           .run();
-      }
-    }
 
-    return surveyId;
-  });
+        const questionId = Number(questionResult.lastInsertRowid);
+
+        for (const option of question.options ?? []) {
+          tx.insert(surveyOptions)
+            .values({
+              questionId,
+              label: option.label,
+              value: option.value,
+              orderIndex: option.orderIndex,
+            })
+            .run();
+        }
+      }
+
+      return surveyId;
+    });
+  } catch (error) {
+    console.error("[repository] insertSurvey failed:", error);
+    throw new Error("数据库写入失败：无法创建问卷");
+  }
 }
 
 export async function replaceSurvey(id: number, input: SurveyInput) {
   const now = Math.floor(Date.now() / 1000);
 
-  db.transaction((tx) => {
-    tx.update(surveys)
-      .set({
-        title: input.title,
-        description: input.description ?? null,
-        expiresAt: input.expiresAt ?? null,
-        updatedAt: now,
-      })
-      .where(eq(surveys.id, id))
-      .run();
-
-    tx.delete(surveyQuestions).where(eq(surveyQuestions.surveyId, id)).run();
-
-    for (const question of input.questions) {
-      const questionResult = tx
-        .insert(surveyQuestions)
-        .values({
-          surveyId: id,
-          type: question.type,
-          title: question.title,
-          required: question.required,
-          orderIndex: question.orderIndex,
-          config: serializeConfig(question.config ?? null),
+  try {
+    db.transaction((tx) => {
+      tx.update(surveys)
+        .set({
+          title: input.title,
+          description: input.description ?? null,
+          expiresAt: input.expiresAt ?? null,
+          updatedAt: now,
         })
+        .where(eq(surveys.id, id))
         .run();
 
-      const questionId = Number(questionResult.lastInsertRowid);
+      tx.delete(surveyQuestions).where(eq(surveyQuestions.surveyId, id)).run();
 
-      for (const option of question.options ?? []) {
-        tx.insert(surveyOptions)
+      for (const question of input.questions) {
+        const questionResult = tx
+          .insert(surveyQuestions)
           .values({
-            questionId,
-            label: option.label,
-            value: option.value,
-            orderIndex: option.orderIndex,
+            surveyId: id,
+            type: question.type,
+            title: question.title,
+            required: question.required,
+            orderIndex: question.orderIndex,
+            config: serializeConfig(question.config ?? null),
           })
           .run();
+
+        const questionId = Number(questionResult.lastInsertRowid);
+
+        for (const option of question.options ?? []) {
+          tx.insert(surveyOptions)
+            .values({
+              questionId,
+              label: option.label,
+              value: option.value,
+              orderIndex: option.orderIndex,
+            })
+            .run();
+        }
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error("[repository] replaceSurvey failed:", error);
+    throw new Error("数据库写入失败：无法更新问卷");
+  }
 }
 
 export async function findSurveyById(id: number) {
-  return mapSurveyDetail(id);
+  try {
+    return mapSurveyDetail(id);
+  } catch (error) {
+    console.error("[repository] findSurveyById failed:", error);
+    throw error;
+  }
 }
 
 export async function listSurveySummaries() {
-  return db.select().from(surveys).orderBy(asc(surveys.createdAt)).all();
+  try {
+    return db.select().from(surveys).orderBy(asc(surveys.createdAt)).all();
+  } catch (error) {
+    console.error("[repository] listSurveySummaries failed:", error);
+    throw new Error("数据库查询失败：无法加载问卷列表");
+  }
 }
 
 export async function removeSurvey(id: number) {
-  db.delete(surveys).where(eq(surveys.id, id)).run();
+  try {
+    db.delete(surveys).where(eq(surveys.id, id)).run();
+  } catch (error) {
+    console.error("[repository] removeSurvey failed:", error);
+    throw new Error("数据库写入失败：无法删除问卷");
+  }
 }

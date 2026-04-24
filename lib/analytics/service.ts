@@ -5,19 +5,24 @@ import { surveyResponses } from "@/lib/db/schema";
 import type { SurveyAnswerValue } from "@/lib/surveys/types";
 
 export async function listSurveyResponses(surveyId: number) {
-  return db
-    .select()
-    .from(surveyResponses)
-    .where(eq(surveyResponses.surveyId, surveyId))
-    .orderBy(asc(surveyResponses.createdAt))
-    .all()
-    .map((response) => ({
-      id: response.id,
-      respondentId: response.respondentId,
-      createdAt: response.createdAt,
-      durationSeconds: response.durationSeconds,
-      answers: JSON.parse(response.answers) as Record<string, SurveyAnswerValue>,
-    }));
+  try {
+    return db
+      .select()
+      .from(surveyResponses)
+      .where(eq(surveyResponses.surveyId, surveyId))
+      .orderBy(asc(surveyResponses.createdAt))
+      .all()
+      .map((response) => ({
+        id: response.id,
+        respondentId: response.respondentId,
+        createdAt: response.createdAt,
+        durationSeconds: response.durationSeconds,
+        answers: JSON.parse(response.answers) as Record<string, SurveyAnswerValue>,
+      }));
+  } catch (error) {
+    console.error("[analytics] listSurveyResponses failed:", error);
+    throw new Error("数据库查询失败：无法加载回收数据");
+  }
 }
 
 export function buildSurveyOverview(
