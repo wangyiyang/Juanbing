@@ -37,4 +37,17 @@ function readRawEnv() {
   };
 }
 
-export const env = envSchema.parse(readRawEnv());
+let _env: ReturnType<typeof envSchema.parse> | undefined;
+
+export function getEnv() {
+  if (!_env) {
+    _env = envSchema.parse(readRawEnv());
+  }
+  return _env;
+}
+
+export const env = new Proxy({} as ReturnType<typeof envSchema.parse>, {
+  get(_target, prop) {
+    return getEnv()[prop as keyof ReturnType<typeof envSchema.parse>];
+  },
+});

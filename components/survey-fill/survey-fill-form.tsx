@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getRespondentId } from "@/lib/respondent/respondent-id";
 import type { SurveyAnswerValue, SurveyDetail } from "@/lib/surveys/types";
+import { generateUUID } from "@/lib/utils";
 
 export function SurveyFillForm({
   survey,
@@ -56,7 +57,7 @@ export function SurveyFillForm({
       await onSubmit({
         answers,
         respondent_id: preview
-          ? `preview-${crypto.randomUUID()}`
+          ? `preview-${generateUUID()}`
           : getRespondentId(),
         duration_seconds: Math.max(
           1,

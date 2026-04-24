@@ -20,7 +20,7 @@ describe("analytics service", () => {
       [{ id: 1, createdAt: 1710000000, respondentId: "abc", answers: { question_11: "Alice" } }],
     );
 
-    expect(rows[0]?.姓名).toBe("Alice");
+    expect((rows[0] as Record<string, unknown>)["姓名"]).toBe("Alice");
     expect(rows[0]?.respondent_id).toBe("abc");
   });
 });

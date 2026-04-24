@@ -1,3 +1,4 @@
+import { generateUUID } from "@/lib/utils";
 import {
   createDefaultQuestion,
 } from "@/lib/surveys/question-defaults";
@@ -75,7 +76,7 @@ export function editorReducer(state: EditorState, action: EditorAction) {
     case "setDescription":
       return { ...state, description: action.value };
     case "addQuestion": {
-      const clientId = crypto.randomUUID();
+      const clientId = generateUUID();
       const question = {
         ...createDefaultQuestion(action.questionType, state.questions.length),
         clientId,
