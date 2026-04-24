@@ -1,31 +1,39 @@
-# Juanbing (卷饼)
+# Juanbing（卷饼）
 
-自用的问卷调查与数据收集平台。
+自用的中文问卷调查与数据收集平台。
 
 ## 技术栈
 
-- **框架**: [Next.js](https://nextjs.org/) (App Router)
-- **语言**: [TypeScript](https://www.typescriptlang.org/)
-- **样式**: [Tailwind CSS](https://tailwindcss.com/)
-- **组件**: [Shadcn UI](https://ui.shadcn.com/)
-- **数据库**: SQLite
+- Next.js 15（App Router）
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- SQLite + Drizzle ORM
 
 ## 快速开始
 
 ```bash
-# 安装依赖
-npm install
-
-# 启动开发服务器
-npm run dev
+pnpm install
+cp .env.example .env.local
+pnpm dev
 ```
 
-应用默认运行在 [http://localhost:3000](http://localhost:3000)。
+应用默认运行在 `http://localhost:3000`。
 
-## 构建
+## 开发前准备
+
+1. 复制 `.env.example` 为 `.env.local`
+2. 用 `bcryptjs` 生成管理员密码哈希并填入 `ADMIN_PASSWORD_HASH`
+3. 执行 `pnpm db:generate && pnpm db:migrate`
+4. 启动开发环境：`pnpm dev`
+
+## 验证命令
 
 ```bash
-npm run build
+pnpm lint
+pnpm test
+pnpm test:e2e
+pnpm build
 ```
 
 ## License
