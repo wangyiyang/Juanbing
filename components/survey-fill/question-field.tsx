@@ -67,10 +67,12 @@ export function QuestionField({
             key={option.value}
             className="flex cursor-pointer items-center gap-3 rounded-lg border border-transparent p-3 transition-colors hover:bg-slate-50 hover:border-slate-200"
           >
-            <Input
+            <input
               checked={value === option.value}
               className="h-4 w-4 accent-indigo-500"
+              name={`question_${question.id}`}
               type="radio"
+              value={option.value}
               onChange={() => onChange(option.value)}
             />
             <span className="text-sm text-slate-700">{option.label}</span>
@@ -90,10 +92,11 @@ export function QuestionField({
             key={option.value}
             className="flex cursor-pointer items-center gap-3 rounded-lg border border-transparent p-3 transition-colors hover:bg-slate-50 hover:border-slate-200"
           >
-            <Input
+            <input
               checked={selectedValues.includes(option.value)}
               className="h-4 w-4 rounded accent-indigo-500"
               type="checkbox"
+              value={option.value}
               onChange={(event) =>
                 onChange(
                   event.target.checked

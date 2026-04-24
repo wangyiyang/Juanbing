@@ -70,7 +70,11 @@ export function SurveyList({
   const [shareUrl, setShareUrl] = useState("");
   const [copied, setCopied] = useState(false);
 
-  const handleShare = (surveyId: number) => {
+  const handleShare = (surveyId: number, status: string) => {
+    if (status !== "published") {
+      toast.error("问卷未发布，请先发布后再分享");
+      return;
+    }
     const url = `${window.location.origin}/surveys/${surveyId}/fill`;
     setShareUrl(url);
     setCopied(false);
@@ -208,10 +212,11 @@ export function SurveyList({
                       </Link>
                     </Button>
                     <Button
-                      className="h-8 px-2 text-xs text-slate-600 hover:bg-emerald-50 hover:text-emerald-600"
+                      className="h-8 px-2 text-xs text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                      disabled={survey.status !== "published"}
                       size="sm"
                       variant="ghost"
-                      onClick={() => handleShare(survey.id)}
+                      onClick={() => handleShare(survey.id, survey.status)}
                     >
                       <ExternalLink className="mr-1 h-3.5 w-3.5" />
                       分享
