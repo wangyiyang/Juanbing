@@ -1,3 +1,4 @@
+import { createElement } from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
@@ -5,7 +6,7 @@ import HomePage from "@/app/page";
 
 describe("HomePage", () => {
   it("renders the admin entry for Juanbing", () => {
-    render(<HomePage />);
+    render(createElement(HomePage));
 
     expect(
       screen.getByRole("heading", { name: "Juanbing 问卷平台" }),

@@ -2,7 +2,10 @@
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { SurveyQuestionDetail } from "@/lib/surveys/types";
+import type {
+  SurveyAnswerValue,
+  SurveyQuestionDetail,
+} from "@/lib/surveys/types";
 
 export function QuestionField({
   question,
@@ -10,8 +13,8 @@ export function QuestionField({
   onChange,
 }: {
   question: SurveyQuestionDetail;
-  value: string | string[] | number | null | undefined;
-  onChange: (value: string | string[] | number | null) => void;
+  value: SurveyAnswerValue | undefined;
+  onChange: (value: SurveyAnswerValue) => void;
 }) {
   if (question.type === "text") {
     return (

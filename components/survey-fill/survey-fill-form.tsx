@@ -52,14 +52,24 @@ export function SurveyFillForm({
     setError(null);
     setPending(true);
 
-    await onSubmit({
-      answers,
-      respondent_id: preview ? `preview-${crypto.randomUUID()}` : getRespondentId(),
-      duration_seconds: Math.max(1, Math.round((Date.now() - startedAt) / 1000)),
-    });
+    try {
+      await onSubmit({
+        answers,
+        respondent_id: preview
+          ? `preview-${crypto.randomUUID()}`
+          : getRespondentId(),
+        duration_seconds: Math.max(
+          1,
+          Math.round((Date.now() - startedAt) / 1000),
+        ),
+      });
 
-    setPending(false);
-    toast.success(preview ? "预览提交成功" : "提交成功，感谢填写");
+      toast.success(preview ? "预览提交成功" : "提交成功，感谢填写");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "提交失败");
+    } finally {
+      setPending(false);
+    }
   }
 
   return (

@@ -3,21 +3,14 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-
-type EditableQuestion = {
-  clientId: string;
-  title: string;
-  required: boolean;
-  type: string;
-  options: Array<{ label: string; value: string; orderIndex: number }>;
-};
+import type { EditorQuestion } from "@/lib/surveys/editor-state";
 
 export function PropertyPanel({
   question,
   onChange,
 }: {
-  question: EditableQuestion | null;
-  onChange: (patch: Partial<EditableQuestion>) => void;
+  question: EditorQuestion | null;
+  onChange: (patch: Partial<EditorQuestion>) => void;
 }) {
   if (!question) {
     return (

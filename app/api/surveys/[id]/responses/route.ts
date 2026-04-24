@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { requireAdminSession } from "@/lib/auth/session";
 import { listSurveyResponses } from "@/lib/analytics/service";
 import { fromError, ok } from "@/lib/http/responses";
+import { publicSubmissionLimiter } from "@/lib/security/rate-limit";
 import { submitSurveyResponse } from "@/lib/surveys/response-service";
 
 export async function GET(
@@ -30,6 +31,16 @@ export async function POST(
     if (preview) {
       await requireAdminSession();
       isAdminPreview = true;
+    } else {
+      const forwardedFor = request.headers.get("x-forwarded-for");
+      const ip = forwardedFor?.split(",")[0]?.trim() || "unknown";
+
+      if (!publicSubmissionLimiter.consume(ip)) {
+        return Response.json(
+          { error: "提交过于频繁，请稍后再试" },
+          { status: 429 },
+        );
+      }
     }
 
     return ok(
