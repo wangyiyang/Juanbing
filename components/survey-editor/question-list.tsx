@@ -7,6 +7,7 @@ export function QuestionList({
   selectedQuestionId,
   onSelect,
   onMoveUp,
+  onDelete,
 }: {
   questions: Array<{
     clientId: string;
@@ -17,6 +18,7 @@ export function QuestionList({
   selectedQuestionId: string | null;
   onSelect: (clientId: string) => void;
   onMoveUp: (clientId: string) => void;
+  onDelete: (clientId: string) => void;
 }) {
   if (questions.length === 0) {
     return (
@@ -28,13 +30,15 @@ export function QuestionList({
 
   return (
     <div className="space-y-3">
-      {questions.map((question) => (
+      {questions.map((question, index) => (
         <QuestionCard
           key={question.clientId}
-          question={question}
-          selected={question.clientId === selectedQuestionId}
+          index={index}
+          onDelete={() => onDelete(question.clientId)}
           onMoveUp={() => onMoveUp(question.clientId)}
           onSelect={() => onSelect(question.clientId)}
+          question={question}
+          selected={question.clientId === selectedQuestionId}
         />
       ))}
     </div>
