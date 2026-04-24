@@ -1,0 +1,18 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+
+import HomePage from "@/app/page";
+
+describe("HomePage", () => {
+  it("renders the admin entry for Juanbing", () => {
+    render(<HomePage />);
+
+    expect(
+      screen.getByRole("heading", { name: "Juanbing 问卷平台" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "进入管理台" })).toHaveAttribute(
+      "href",
+      "/surveys",
+    );
+  });
+});
