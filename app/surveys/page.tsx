@@ -20,7 +20,10 @@ export default async function SurveysPage() {
     <AdminShell
       title="问卷列表"
       actions={
-        <Button asChild>
+        <Button
+          asChild
+          className="bg-gradient-to-r from-indigo-500 to-violet-600 shadow-md hover:from-indigo-600 hover:to-violet-700"
+        >
           <Link href="/surveys/new">新建问卷</Link>
         </Button>
       }
