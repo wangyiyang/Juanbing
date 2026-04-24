@@ -27,7 +27,7 @@ export default function HomePage() {
               <ClipboardList className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900">Juanbing</h1>
+              <h1 className="text-xl font-bold text-slate-900">卷饼</h1>
               <p className="text-xs text-slate-500">轻量问卷平台</p>
             </div>
           </div>
@@ -42,7 +42,7 @@ export default function HomePage() {
           </div>
           <div className="space-y-3">
             <h1 className="text-4xl font-bold tracking-tight text-slate-900">
-              Juanbing 问卷平台
+              卷饼问卷平台
             </h1>
             <p className="mx-auto max-w-xl text-base text-slate-600">
               单管理员维护、自助发布链接、轻量收集数据的中文问卷系统。创建问卷，分享链接，实时查看结果。
@@ -119,7 +119,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t bg-white/60 py-6 text-center text-sm text-slate-500">
-        <p>Juanbing 问卷平台 · 轻量、简单、高效</p>
+        <p>卷饼问卷平台 · 轻量、简单、高效</p>
       </footer>
     </div>
   );

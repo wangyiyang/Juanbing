@@ -21,7 +21,7 @@ export function AdminShell({
               <ClipboardList className="h-4 w-4 text-white" />
             </div>
             <span className="text-sm font-semibold text-slate-800">
-              Juanbing
+              卷饼
             </span>
           </Link>
           <nav className="flex items-center gap-4 text-sm">

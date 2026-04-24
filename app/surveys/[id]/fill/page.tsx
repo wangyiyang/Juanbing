@@ -42,7 +42,7 @@ export default async function SurveyFillPage({
             <ClipboardList className="h-4 w-4 text-white" />
           </div>
           <span className="text-sm font-semibold text-slate-800">
-            Juanbing 问卷
+            卷饼问卷
           </span>
           {preview === "1" ? (
             <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-600">

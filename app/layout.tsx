@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Juanbing 问卷平台",
+  title: "卷饼问卷平台",
   description: "自用的中文问卷调查与数据收集平台",
 };
 
