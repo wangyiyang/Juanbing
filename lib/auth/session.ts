@@ -10,22 +10,24 @@ export type AdminSession = {
   username?: string;
 };
 
-export const sessionOptions: SessionOptions = {
-  cookieName: "juanbing_admin_session",
-  password: env.SESSION_SECRET,
-  cookieOptions: {
-    httpOnly: true,
-    sameSite: "lax",
-    secure:
-      process.env.COOKIE_SECURE !== undefined
-        ? process.env.COOKIE_SECURE === "true"
-        : env.NODE_ENV === "production",
-    path: "/",
-  },
-};
+function getSessionOptions(): SessionOptions {
+  return {
+    cookieName: "juanbing_admin_session",
+    password: env.SESSION_SECRET,
+    cookieOptions: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure:
+        process.env.COOKIE_SECURE !== undefined
+          ? process.env.COOKIE_SECURE === "true"
+          : env.NODE_ENV === "production",
+      path: "/",
+    },
+  };
+}
 
 export async function getAdminSession() {
-  return getIronSession<AdminSession>(await cookies(), sessionOptions);
+  return getIronSession<AdminSession>(await cookies(), getSessionOptions());
 }
 
 export async function verifyAdminCredentials(
