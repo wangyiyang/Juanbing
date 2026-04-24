@@ -263,30 +263,33 @@ export function SurveyList({
                       </AlertDialogContent>
                     </AlertDialog>
                   </div>
-                  {survey.status !== "draft" && (
-                    <div className="mt-2 border-t pt-2">
-                      <Button
-                        className="w-full h-7 text-xs"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() =>
-                          handleToggleStatus(survey.id, survey.status)
-                        }
-                      >
-                        {survey.status === "published" ? (
-                          <>
-                            <EyeOff className="mr-1 h-3.5 w-3.5" />
-                            关闭问卷
-                          </>
-                        ) : (
-                          <>
-                            <Eye className="mr-1 h-3.5 w-3.5" />
-                            重新发布
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
+                  <div className="mt-2 border-t pt-2">
+                    <Button
+                      className="w-full h-7 text-xs"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        handleToggleStatus(survey.id, survey.status)
+                      }
+                    >
+                      {survey.status === "published" ? (
+                        <>
+                          <EyeOff className="mr-1 h-3.5 w-3.5" />
+                          关闭问卷
+                        </>
+                      ) : survey.status === "draft" ? (
+                        <>
+                          <Eye className="mr-1 h-3.5 w-3.5" />
+                          发布问卷
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="mr-1 h-3.5 w-3.5" />
+                          重新发布
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             );
