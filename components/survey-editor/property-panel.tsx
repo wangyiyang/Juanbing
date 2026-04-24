@@ -46,7 +46,7 @@ export function PropertyPanel({
           <Label>选项</Label>
           {question.options.map((option, index) => (
             <Input
-              key={`${option.value}-${index}`}
+              key={index}
               value={option.label}
               onChange={(event) =>
                 onChange({
