@@ -120,6 +120,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t bg-white/60 py-6 text-center text-sm text-slate-500">
         <p>卷饼问卷平台 · 轻量、简单、高效</p>
+        <p className="mt-1 text-xs text-slate-400">Made by Wang Yiyang</p>
       </footer>
     </div>
   );

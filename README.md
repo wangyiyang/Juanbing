@@ -36,6 +36,10 @@ pnpm test:e2e
 pnpm build
 ```
 
+## 作者
+
+**Wang Yiyang**
+
 ## License
 
 [MIT](LICENSE)
