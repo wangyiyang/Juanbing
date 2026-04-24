@@ -1,0 +1,47 @@
+import bcrypt from "bcryptjs";
+import { getIronSession, type SessionOptions } from "iron-session";
+import { cookies } from "next/headers";
+
+import { env } from "@/lib/config/env";
+import { ApiError } from "@/lib/http/api-error";
+
+export type AdminSession = {
+  isAuthenticated?: boolean;
+  username?: string;
+};
+
+export const sessionOptions: SessionOptions = {
+  cookieName: "juanbing_admin_session",
+  password: env.SESSION_SECRET,
+  cookieOptions: {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: env.NODE_ENV === "production",
+    path: "/",
+  },
+};
+
+export async function getAdminSession() {
+  return getIronSession<AdminSession>(await cookies(), sessionOptions);
+}
+
+export async function verifyAdminCredentials(
+  username: string,
+  password: string,
+) {
+  if (username !== env.ADMIN_USERNAME) {
+    return false;
+  }
+
+  return bcrypt.compare(password, env.ADMIN_PASSWORD_HASH);
+}
+
+export async function requireAdminSession() {
+  const session = await getAdminSession();
+
+  if (!session.isAuthenticated) {
+    throw new ApiError(401, "请先登录管理端");
+  }
+
+  return session;
+}

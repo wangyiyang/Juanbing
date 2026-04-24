@@ -4,7 +4,7 @@ const TEST_DEFAULTS = {
   SESSION_SECRET: "12345678901234567890123456789012",
   ADMIN_USERNAME: "admin",
   ADMIN_PASSWORD_HASH:
-    "$2b$10$Y0K89iDd3s1B4kgX4V0f0.x5X7VfVKiwoMPmxjSPdZRhqUWLWyd4W", // secret123
+    "$2b$10$nA1DjKqLQDSG/lTG/X/ftO1MRdBTIrX0bgxzKoh9rZf0xgMJo4xR6", // secret123
 };
 
 const envSchema = z.object({
