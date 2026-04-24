@@ -17,7 +17,7 @@
   "dependencies": {
     "@base-ui/react": "^1.4.1",
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^12.9.0",
+    "better-sqlite3": "12.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "csv-stringify": "^6.7.0",

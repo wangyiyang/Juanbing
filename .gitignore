@@ -23,6 +23,9 @@
 # misc
 .DS_Store
 *.pem
+.worktrees/
+data/*.sqlite
+data/*.sqlite-*
 
 # debug
 npm-debug.log*
