@@ -30,7 +30,25 @@ export default async function SurveyFillPage({
   }
 
   if (survey.status !== "published" && preview !== "1") {
-    notFound();
+    if (survey.status === "draft") {
+      return (
+        <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-6 text-center">
+          <h1 className="text-2xl font-semibold">问卷暂未发布</h1>
+          <p className="mt-2 text-slate-600">
+            该问卷尚未发布，请联系问卷创建者发布后再访问。
+          </p>
+        </main>
+      );
+    }
+
+    return (
+      <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-6 text-center">
+        <h1 className="text-2xl font-semibold">问卷已关闭</h1>
+        <p className="mt-2 text-slate-600">
+          该问卷已关闭，不再接受新的填写。
+        </p>
+      </main>
+    );
   }
 
   if (survey.expiresAt && Math.floor(Date.now() / 1000) > survey.expiresAt && preview !== "1") {
