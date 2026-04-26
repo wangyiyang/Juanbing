@@ -17,6 +17,7 @@ export type EditorQuestion = SurveyInput["questions"][number] & {
 export type EditorState = {
   title: string;
   description: string;
+  expiresAt: number | null;
   questions: EditorQuestion[];
   selectedQuestionId: string | null;
 };
@@ -24,6 +25,7 @@ export type EditorState = {
 export type EditorAction =
   | { type: "setTitle"; value: string }
   | { type: "setDescription"; value: string }
+  | { type: "setExpiresAt"; value: number | null }
   | { type: "addQuestion"; questionType: QuestionType }
   | { type: "selectQuestion"; clientId: string }
   | { type: "moveQuestionUp"; clientId: string }
@@ -47,6 +49,7 @@ export function createInitialEditorState(
     return {
       title: "未命名问卷",
       description: "",
+      expiresAt: null,
       questions: [],
       selectedQuestionId: null,
     };
@@ -64,6 +67,7 @@ export function createInitialEditorState(
   return {
     title: survey.title,
     description: survey.description ?? "",
+    expiresAt: survey.expiresAt,
     questions,
     selectedQuestionId: questions[0]?.clientId ?? null,
   };
@@ -75,6 +79,8 @@ export function editorReducer(state: EditorState, action: EditorAction) {
       return { ...state, title: action.value };
     case "setDescription":
       return { ...state, description: action.value };
+    case "setExpiresAt":
+      return { ...state, expiresAt: action.value };
     case "addQuestion": {
       const clientId = generateUUID();
       const question = {
