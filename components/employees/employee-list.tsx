@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { EmployeeFormDialog } from "@/components/employees/employee-form-dialog";
+import { EmployeeImportDialog } from "@/components/employees/employee-import-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, X, Users, Edit2, UserX, Plus } from "lucide-react";
+import { Search, X, Users, Edit2, UserX, Plus, Upload } from "lucide-react";
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
   active: { label: "在职", color: "text-emerald-600 bg-emerald-50 border-emerald-200" },
@@ -44,6 +45,7 @@ export function EmployeeList({
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<typeof employees[0] | null>(null);
 
   const handleSearch = () => {
@@ -115,6 +117,14 @@ export function EmployeeList({
               清除
             </Button>
           )}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setImportDialogOpen(true)}
+          >
+            <Upload className="mr-1 h-4 w-4" />
+            批量导入
+          </Button>
           <Button
             size="sm"
             className="bg-gradient-to-r from-indigo-500 to-violet-600"
@@ -205,6 +215,10 @@ export function EmployeeList({
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         employee={editingEmployee}
+      />
+      <EmployeeImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
       />
     </>
   );

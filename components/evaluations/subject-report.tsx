@@ -16,6 +16,15 @@ import {
 } from "@/components/ui/table";
 import type { SubjectReport } from "@/lib/evaluations/report-service";
 import { EyeOff } from "lucide-react";
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 const RELATIONSHIP_LABEL: Record<string, string> = {
   self: "自评",
@@ -25,7 +34,35 @@ const RELATIONSHIP_LABEL: Record<string, string> = {
   other: "其他",
 };
 
+const RELATIONSHIP_COLOR: Record<string, string> = {
+  self: "#6366f1",
+  manager: "#10b981",
+  peer: "#f59e0b",
+  direct_report: "#ef4444",
+  other: "#8b5cf6",
+};
+
 export function SubjectReport({ report }: { report: SubjectReport }) {
+  // Build radar chart data
+  const radarData = report.ratingQuestions.map((q) => {
+    const row: Record<string, number | string> = {
+      dimension: q.title,
+    };
+    for (const group of q.groups) {
+      if (!group.hidden) {
+        row[group.relationship] = group.average;
+      }
+    }
+    return row;
+  });
+
+  const visibleRelationships =
+    report.ratingQuestions.length > 0
+      ? report.ratingQuestions[0].groups
+          .filter((g) => !g.hidden)
+          .map((g) => g.relationship)
+      : [];
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
@@ -70,10 +107,45 @@ export function SubjectReport({ report }: { report: SubjectReport }) {
         </Card>
       </div>
 
+      {/* Radar chart */}
+      {report.ratingQuestions.length > 0 && visibleRelationships.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">评分雷达图</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={radarData}>
+                  <PolarGrid />
+                  <PolarAngleAxis
+                    dataKey="dimension"
+                    tick={{ fontSize: 12 }}
+                  />
+                  <PolarRadiusAxis angle={90} domain={[0, 5]} tickCount={6} />
+                  {visibleRelationships.map((rel) => (
+                    <Radar
+                      key={rel}
+                      name={RELATIONSHIP_LABEL[rel] ?? rel}
+                      dataKey={rel}
+                      stroke={RELATIONSHIP_COLOR[rel] ?? "#6366f1"}
+                      fill={RELATIONSHIP_COLOR[rel] ?? "#6366f1"}
+                      fillOpacity={0.1}
+                      strokeWidth={2}
+                    />
+                  ))}
+                  <Legend />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {report.ratingQuestions.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">评分题</CardTitle>
+            <CardTitle className="text-base">评分明细</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {report.ratingQuestions.map((question) => (

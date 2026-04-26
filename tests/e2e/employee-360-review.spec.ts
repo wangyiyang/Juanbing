@@ -17,7 +17,7 @@ test("admin can run full 360 evaluation workflow", async ({ browser, page }) => 
     const res = await fetch("/api/employees", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "张三", email: "zhangsan@example.com", department: "研发部", title: "工程师" }),
+      body: JSON.stringify({ name: "张三", email: `zhangsan-${Date.now()}@example.com`, department: "研发部", title: "工程师" }),
     });
     return res.json();
   });
@@ -27,7 +27,7 @@ test("admin can run full 360 evaluation workflow", async ({ browser, page }) => 
     const res = await fetch("/api/employees", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "李四", email: "lisi@example.com", department: "研发部", title: "工程师" }),
+      body: JSON.stringify({ name: "李四", email: `lisi-${Date.now()}@example.com`, department: "研发部", title: "工程师" }),
     });
     return res.json();
   });

@@ -1,7 +1,8 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/lib/db/client";
 import {
+  employees,
   evaluationAssignments,
   evaluationCycles,
   evaluationSubjects,
@@ -11,6 +12,7 @@ import type {
   EvaluationAssignmentStatus,
   EvaluationCycleInput,
   EvaluationCycleStatus,
+  EvaluationRelationship,
 } from "@/lib/evaluations/types";
 
 export async function insertEvaluationCycle(
@@ -166,5 +168,58 @@ export async function listAssignmentsBySubjectId(subjectId: number) {
     .select()
     .from(evaluationAssignments)
     .where(eq(evaluationAssignments.subjectId, subjectId))
+    .all();
+}
+
+export async function findAssignmentBySubjectRaterRelationship(
+  subjectId: number,
+  raterEmployeeId: number | null,
+  relationship: EvaluationRelationship,
+) {
+  const conditions = [
+    eq(evaluationAssignments.subjectId, subjectId),
+    eq(evaluationAssignments.relationship, relationship),
+  ];
+
+  if (raterEmployeeId === null) {
+    conditions.push(isNull(evaluationAssignments.raterEmployeeId));
+  } else {
+    conditions.push(eq(evaluationAssignments.raterEmployeeId, raterEmployeeId));
+  }
+
+  return db
+    .select()
+    .from(evaluationAssignments)
+    .where(and(...conditions))
+    .get();
+}
+
+export async function findEmployeesByDepartment(
+  department: string,
+  excludeEmployeeId: number,
+) {
+  const rows = db
+    .select()
+    .from(employees)
+    .where(
+      and(
+        eq(employees.department, department),
+        eq(employees.status, "active"),
+      ),
+    )
+    .all();
+  return rows.filter((r) => r.id !== excludeEmployeeId);
+}
+
+export async function findDirectReportsByManagerId(managerId: number) {
+  return db
+    .select()
+    .from(employees)
+    .where(
+      and(
+        eq(employees.managerId, managerId),
+        eq(employees.status, "active"),
+      ),
+    )
     .all();
 }

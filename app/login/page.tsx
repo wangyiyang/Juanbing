@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ClipboardList, LogIn } from "lucide-react";
+import { ClipboardList, LogIn, FileText } from "lucide-react";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -84,6 +85,15 @@ export default function LoginPage() {
               {pending ? "登录中..." : "登录"}
             </Button>
           </form>
+          <div className="mt-4 text-center">
+            <Link
+              href="/evaluations/report/lookup"
+              className="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-700"
+            >
+              <FileText className="mr-1 h-4 w-4" />
+              查看我的 360 报告
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -52,12 +52,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("theme", newTheme);
   };
 
-  if (!mounted) {
-    return <>{children}</>;
-  }
+  const value: ThemeContextType = {
+    theme,
+    setTheme,
+    resolvedTheme,
+  };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

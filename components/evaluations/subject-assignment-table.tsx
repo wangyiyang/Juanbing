@@ -15,7 +15,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Copy, Plus, BarChart3, Send } from "lucide-react";
+import { Copy, Plus, BarChart3, Send, Zap, ClipboardList } from "lucide-react";
+import { BatchAssignmentDialog } from "@/components/evaluations/batch-assignment-dialog";
+import { PendingAssignmentsPanel } from "@/components/evaluations/pending-assignments-panel";
 
 const RELATIONSHIP_LABEL: Record<string, string> = {
   self: "自评",
@@ -48,6 +50,8 @@ export function SubjectAssignmentTable({
   const router = useRouter();
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [newAssignments, setNewAssignments] = useState<Record<number, { raterId: string; relationship: string }>>({});
+  const [batchDialogOpen, setBatchDialogOpen] = useState(false);
+  const [pendingPanelOpen, setPendingPanelOpen] = useState(false);
 
   const activeEmployees = employees.filter((e) => e.status === "active");
   const employeeMap = new Map(employees.map((e) => [e.id, e]));
@@ -132,23 +136,43 @@ export function SubjectAssignmentTable({
         <h2 className="text-lg font-semibold">被评人与任务</h2>
         <div className="flex items-center gap-2">
           {cycleStatus === "draft" && (
-            <Button
-              size="sm"
-              className="bg-gradient-to-r from-indigo-500 to-violet-600"
-              onClick={handlePublish}
-            >
-              <Send className="mr-1 h-4 w-4" />
-              发布项目
-            </Button>
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setBatchDialogOpen(true)}
+              >
+                <Zap className="mr-1 h-4 w-4" />
+                批量生成任务
+              </Button>
+              <Button
+                size="sm"
+                className="bg-gradient-to-r from-indigo-500 to-violet-600"
+                onClick={handlePublish}
+              >
+                <Send className="mr-1 h-4 w-4" />
+                发布项目
+              </Button>
+            </>
           )}
           {cycleStatus === "active" && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleClose}
-            >
-              关闭项目
-            </Button>
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setPendingPanelOpen(true)}
+              >
+                <ClipboardList className="mr-1 h-4 w-4" />
+                催办
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleClose}
+              >
+                关闭项目
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -175,6 +199,21 @@ export function SubjectAssignmentTable({
           添加
         </Button>
       </div>
+
+      <BatchAssignmentDialog
+        open={batchDialogOpen}
+        onOpenChange={setBatchDialogOpen}
+        cycleId={cycleId}
+        subjects={subjects}
+      />
+      <PendingAssignmentsPanel
+        open={pendingPanelOpen}
+        onOpenChange={setPendingPanelOpen}
+        cycleId={cycleId}
+        subjects={subjects}
+        assignments={assignments}
+        employees={employees}
+      />
 
       {subjects.length === 0 ? (
         <Card className="border-dashed border-2 bg-white/50">

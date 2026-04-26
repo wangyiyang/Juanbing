@@ -5,7 +5,10 @@ import { db } from "@/lib/db/client";
 import { evaluationAssignments, surveyResponses } from "@/lib/db/schema";
 import { ApiError } from "@/lib/http/api-error";
 import {
+  findAssignmentBySubjectRaterRelationship,
   findAssignmentByToken,
+  findDirectReportsByManagerId,
+  findEmployeesByDepartment,
   findEvaluationCycleById,
   insertEvaluationAssignment,
   insertEvaluationCycle,
@@ -147,10 +150,281 @@ export async function addEvaluationAssignment(
     }
   }
 
+  const existing = await findAssignmentBySubjectRaterRelationship(
+    parsed.subjectId,
+    parsed.raterEmployeeId,
+    parsed.relationship,
+  );
+  if (existing) {
+    throw new ApiError(409, "该评价任务已存在");
+  }
+
   const token = generateEvaluationToken();
   const id = await insertEvaluationAssignment(cycleId, parsed, token);
   const assignments = await listEvaluationAssignments(cycleId);
   return assignments.find((a) => a.id === id)!;
+}
+
+export type BatchAssignmentRules = {
+  self?: boolean;
+  manager?: boolean;
+  peerCount?: number;
+  directReportCount?: number;
+};
+
+export type BatchAssignmentResult = {
+  created: number;
+  skipped: number;
+  failed: number;
+  details: Array<{
+    subjectId: number;
+    relationship: string;
+    status: "created" | "skipped" | "failed";
+    message?: string;
+  }>;
+};
+
+export async function batchGenerateAssignments(
+  cycleId: number,
+  subjectIds: number[],
+  rules: BatchAssignmentRules,
+): Promise<BatchAssignmentResult> {
+  const cycle = await findEvaluationCycleById(cycleId);
+  if (!cycle) {
+    throw new ApiError(404, "评价项目不存在");
+  }
+
+  const allSubjects = await listEvaluationSubjects(cycleId);
+  const subjects = allSubjects.filter((s) => subjectIds.includes(s.id));
+  if (subjects.length === 0) {
+    throw new ApiError(400, "没有有效的被评人");
+  }
+
+  const result: BatchAssignmentResult = {
+    created: 0,
+    skipped: 0,
+    failed: 0,
+    details: [],
+  };
+
+  for (const subject of subjects) {
+    const subjectEmployee = await findEmployeeById(subject.employeeId);
+    if (!subjectEmployee || subjectEmployee.status !== "active") {
+      result.failed++;
+      result.details.push({
+        subjectId: subject.id,
+        relationship: "",
+        status: "failed",
+        message: "被评人员工不存在或已停用",
+      });
+      continue;
+    }
+
+    // Self evaluation
+    if (rules.self) {
+      const existing = await findAssignmentBySubjectRaterRelationship(
+        subject.id,
+        subject.employeeId,
+        "self",
+      );
+      if (existing) {
+        result.skipped++;
+        result.details.push({
+          subjectId: subject.id,
+          relationship: "self",
+          status: "skipped",
+        });
+      } else {
+        try {
+          const token = generateEvaluationToken();
+          await insertEvaluationAssignment(
+            cycleId,
+            { subjectId: subject.id, raterEmployeeId: subject.employeeId, relationship: "self" },
+            token,
+          );
+          result.created++;
+          result.details.push({
+            subjectId: subject.id,
+            relationship: "self",
+            status: "created",
+          });
+        } catch {
+          result.failed++;
+          result.details.push({
+            subjectId: subject.id,
+            relationship: "self",
+            status: "failed",
+            message: "插入失败",
+          });
+        }
+      }
+    }
+
+    // Manager evaluation
+    if (rules.manager && subjectEmployee.managerId) {
+      const existing = await findAssignmentBySubjectRaterRelationship(
+        subject.id,
+        subjectEmployee.managerId,
+        "manager",
+      );
+      if (existing) {
+        result.skipped++;
+        result.details.push({
+          subjectId: subject.id,
+          relationship: "manager",
+          status: "skipped",
+        });
+      } else {
+        const manager = await findEmployeeById(subjectEmployee.managerId);
+        if (manager && manager.status === "active") {
+          try {
+            const token = generateEvaluationToken();
+            await insertEvaluationAssignment(
+              cycleId,
+              { subjectId: subject.id, raterEmployeeId: manager.id, relationship: "manager" },
+              token,
+            );
+            result.created++;
+            result.details.push({
+              subjectId: subject.id,
+              relationship: "manager",
+              status: "created",
+            });
+          } catch {
+            result.failed++;
+            result.details.push({
+              subjectId: subject.id,
+              relationship: "manager",
+              status: "failed",
+              message: "插入失败",
+            });
+          }
+        } else {
+          result.failed++;
+          result.details.push({
+            subjectId: subject.id,
+            relationship: "manager",
+            status: "failed",
+            message: "上级不存在或已停用",
+          });
+        }
+      }
+    }
+
+    // Peer evaluations
+    if (rules.peerCount && rules.peerCount > 0 && subjectEmployee.department) {
+      const peers = await findEmployeesByDepartment(
+        subjectEmployee.department,
+        subject.employeeId,
+      );
+      const shuffled = peers.sort(() => Math.random() - 0.5);
+      const selectedPeers = shuffled.slice(0, rules.peerCount);
+
+      for (const peer of selectedPeers) {
+        const existing = await findAssignmentBySubjectRaterRelationship(
+          subject.id,
+          peer.id,
+          "peer",
+        );
+        if (existing) {
+          result.skipped++;
+          result.details.push({
+            subjectId: subject.id,
+            relationship: "peer",
+            status: "skipped",
+          });
+        } else {
+          try {
+            const token = generateEvaluationToken();
+            await insertEvaluationAssignment(
+              cycleId,
+              { subjectId: subject.id, raterEmployeeId: peer.id, relationship: "peer" },
+              token,
+            );
+            result.created++;
+            result.details.push({
+              subjectId: subject.id,
+              relationship: "peer",
+              status: "created",
+            });
+          } catch {
+            result.failed++;
+            result.details.push({
+              subjectId: subject.id,
+              relationship: "peer",
+              status: "failed",
+              message: "插入失败",
+            });
+          }
+        }
+      }
+
+      if (selectedPeers.length < rules.peerCount) {
+        result.details.push({
+          subjectId: subject.id,
+          relationship: "peer",
+          status: "failed",
+          message: `部门人数不足，实际抽取 ${selectedPeers.length} 人`,
+        });
+      }
+    }
+
+    // Direct report evaluations
+    if (rules.directReportCount && rules.directReportCount > 0) {
+      const reports = await findDirectReportsByManagerId(subject.employeeId);
+      const selectedReports = reports.slice(0, rules.directReportCount);
+
+      for (const report of selectedReports) {
+        const existing = await findAssignmentBySubjectRaterRelationship(
+          subject.id,
+          report.id,
+          "direct_report",
+        );
+        if (existing) {
+          result.skipped++;
+          result.details.push({
+            subjectId: subject.id,
+            relationship: "direct_report",
+            status: "skipped",
+          });
+        } else {
+          try {
+            const token = generateEvaluationToken();
+            await insertEvaluationAssignment(
+              cycleId,
+              { subjectId: subject.id, raterEmployeeId: report.id, relationship: "direct_report" },
+              token,
+            );
+            result.created++;
+            result.details.push({
+              subjectId: subject.id,
+              relationship: "direct_report",
+              status: "created",
+            });
+          } catch {
+            result.failed++;
+            result.details.push({
+              subjectId: subject.id,
+              relationship: "direct_report",
+              status: "failed",
+              message: "插入失败",
+            });
+          }
+        }
+      }
+
+      if (selectedReports.length < rules.directReportCount) {
+        result.details.push({
+          subjectId: subject.id,
+          relationship: "direct_report",
+          status: "failed",
+          message: `下属人数不足，实际抽取 ${selectedReports.length} 人`,
+        });
+      }
+    }
+  }
+
+  return result;
 }
 
 export async function getAssignmentsByCycleId(cycleId: number) {

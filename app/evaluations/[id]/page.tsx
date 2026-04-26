@@ -41,6 +41,7 @@ export default async function EvaluationDetailPage({
           cycle={cycle}
           subjects={subjects}
           assignments={assignments}
+          employees={employees}
         />
         <SubjectAssignmentTable
           cycleId={cycleId}

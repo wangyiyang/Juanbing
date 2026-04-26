@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `evaluation_assignments_unique_rater` ON `evaluation_assignments` (`subject_id`, `rater_employee_id`, `relationship`);
