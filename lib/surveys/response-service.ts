@@ -55,6 +55,10 @@ export async function submitSurveyResponse({
     throw new ApiError(409, "问卷尚未发布");
   }
 
+  if (survey.expiresAt && Math.floor(Date.now() / 1000) > survey.expiresAt) {
+    throw new ApiError(403, "问卷已过期");
+  }
+
   validateAnswersAgainstSurvey(survey, parsed.answers);
 
   const answers = Object.fromEntries(
