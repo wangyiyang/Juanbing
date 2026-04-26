@@ -36,6 +36,10 @@ pnpm test:e2e
 pnpm build
 ```
 
+## 360 环评
+
+Juanbing 支持在通用问卷之上创建员工 360 环评项目。管理员可以维护员工档案，配置被评人和评价任务，通过专属 token 链接收集评价，并查看遵守匿名阈值的被评人报告。
+
 ## License
 
 [MIT](LICENSE)
