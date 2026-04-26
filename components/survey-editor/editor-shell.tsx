@@ -95,6 +95,10 @@ export function EditorShell({ survey }: { survey?: SurveyDetail | null }) {
       toast.error("请先保存问卷");
       return;
     }
+    if (survey.status !== "published") {
+      toast.error("问卷未发布，请先发布后再分享");
+      return;
+    }
     const url = `${window.location.origin}/surveys/${survey.id}/fill`;
     setShareUrl(url);
     setCopied(false);
