@@ -19,6 +19,7 @@ export function SurveyList({
     title: string;
     status: string;
     createdAt: number;
+    expiresAt: number | null;
   }>;
 }) {
   return (
@@ -36,7 +37,14 @@ export function SurveyList({
           <TableRow key={survey.id}>
             <TableCell>{survey.title}</TableCell>
             <TableCell>
-              <Badge variant="secondary">{survey.status}</Badge>
+              <div className="flex flex-col gap-1">
+                <Badge variant="secondary">{survey.status}</Badge>
+                {survey.expiresAt ? (
+                  <span className="text-xs text-slate-500">
+                    到期：{new Date(survey.expiresAt * 1000).toLocaleDateString("zh-CN")}
+                  </span>
+                ) : null}
+              </div>
             </TableCell>
             <TableCell>
               {new Date(survey.createdAt * 1000).toLocaleString("zh-CN")}
