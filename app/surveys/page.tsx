@@ -7,14 +7,19 @@ import { Button } from "@/components/ui/button";
 import { requireAdminSession } from "@/lib/auth/session";
 import { listSurveys } from "@/lib/surveys/service";
 
-export default async function SurveysPage() {
+export default async function SurveysPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ query?: string; status?: string }>;
+}) {
   try {
     await requireAdminSession();
   } catch {
     redirect("/login");
   }
 
-  const surveys = await listSurveys();
+  const { query, status } = await searchParams;
+  const surveys = await listSurveys(query, status);
 
   return (
     <AdminShell
