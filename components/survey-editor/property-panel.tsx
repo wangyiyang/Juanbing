@@ -40,7 +40,7 @@ export function PropertyPanel({
           onCheckedChange={(checked) => onChange({ required: checked })}
         />
       </div>
-      {(question.type === "single_choice" || question.type === "multiple_choice") &&
+      {(question.type === "single_choice" || question.type === "multiple_choice" || question.type === "dropdown") &&
       question.options.length > 0 ? (
         <div className="space-y-3">
           <Label>选项</Label>
