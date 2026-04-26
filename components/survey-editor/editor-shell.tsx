@@ -41,6 +41,7 @@ export function EditorShell({ survey }: { survey?: SurveyDetail | null }) {
       body: JSON.stringify({
         title: state.title,
         description: state.description,
+        expiresAt: state.expiresAt,
         questions: state.questions.map((question) => ({
           id: question.id,
           type: question.type,
@@ -90,6 +91,29 @@ export function EditorShell({ survey }: { survey?: SurveyDetail | null }) {
             dispatch({ type: "setDescription", value: event.target.value })
           }
         />
+        <div className="space-y-2">
+          <label className="text-sm font-medium" htmlFor="expires-at">
+            过期时间（可选）
+          </label>
+          <Input
+            id="expires-at"
+            type="date"
+            value={
+              state.expiresAt
+                ? new Date(state.expiresAt * 1000).toISOString().split("T")[0]
+                : ""
+            }
+            onChange={(event) => {
+              const dateValue = event.target.value;
+              dispatch({
+                type: "setExpiresAt",
+                value: dateValue
+                  ? Math.floor(new Date(dateValue).getTime() / 1000)
+                  : null,
+              });
+            }}
+          />
+        </div>
         <QuestionList
           questions={state.questions}
           selectedQuestionId={state.selectedQuestionId}
