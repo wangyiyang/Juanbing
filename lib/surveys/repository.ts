@@ -1,4 +1,4 @@
-import { asc, eq, like, or } from "drizzle-orm";
+import { and, asc, eq, like, or } from "drizzle-orm";
 
 import { db } from "@/lib/db/client";
 import {
@@ -216,7 +216,7 @@ export async function searchSurveySummaries(query?: string, status?: string) {
 
     if (status) {
       const statusCondition = eq(surveys.status, status as "draft" | "published" | "closed");
-      conditions = conditions ? conditions : statusCondition;
+      conditions = conditions ? and(conditions, statusCondition) : statusCondition;
     }
 
     if (conditions) {

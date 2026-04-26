@@ -5,37 +5,63 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { employees, evaluationAssignments, evaluationCycles, evaluationSubjects } from "@/lib/db/schema";
+import { db } from "@/lib/db/client";
+import { eq } from "drizzle-orm";
+import { getSurveyById } from "@/lib/surveys/service";
 
 async function loadAssignment(token: string) {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/evaluations/assignments/${token}`,
-      { cache: "no-store" },
-    );
-    if (!response.ok) return null;
-    return (await response.json()) as {
-      data: {
-        assignment: {
-          token: string;
-          status: string;
-          relationship: string;
-        };
-        cycle: {
-          title: string;
-          status: string;
-          endsAt: number | null;
-        };
-        subject: {
-          name: string;
-          department: string;
-          title: string;
-        };
-        survey: import("@/lib/surveys/types").SurveyDetail;
-      };
-    };
-  } catch {
+  const assignment = db
+    .select()
+    .from(evaluationAssignments)
+    .where(eq(evaluationAssignments.token, token))
+    .get();
+
+  if (!assignment) {
     return null;
   }
+
+  const cycle = db
+    .select()
+    .from(evaluationCycles)
+    .where(eq(evaluationCycles.id, assignment.cycleId))
+    .get();
+
+  if (!cycle) {
+    return null;
+  }
+
+  const subject = db
+    .select()
+    .from(evaluationSubjects)
+    .where(eq(evaluationSubjects.id, assignment.subjectId))
+    .get();
+
+  const subjectEmployee = subject
+    ? db.select().from(employees).where(eq(employees.id, subject.employeeId)).get()
+    : undefined;
+
+  const survey = await getSurveyById(cycle.surveyId);
+
+  return {
+    assignment: {
+      token: assignment.token,
+      status: assignment.status,
+      relationship: assignment.relationship,
+    },
+    cycle: {
+      title: cycle.title,
+      status: cycle.status,
+      startsAt: cycle.startsAt,
+      endsAt: cycle.endsAt,
+    },
+    subject: {
+      name: subjectEmployee?.name ?? "",
+      department: subjectEmployee?.department ?? "",
+      title: subjectEmployee?.title ?? "",
+    },
+    survey,
+  };
 }
 
 export default async function EvaluationFillPage({
@@ -46,7 +72,7 @@ export default async function EvaluationFillPage({
   const { token } = await params;
   const result = await loadAssignment(token);
 
-  if (!result) {
+  if (!result || !result.survey) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
         <Card className="w-full max-w-md">
@@ -61,7 +87,7 @@ export default async function EvaluationFillPage({
     );
   }
 
-  const { assignment, cycle, subject, survey } = result.data;
+  const { assignment, cycle, subject, survey } = result;
 
   if (cycle.status !== "active") {
     return (
@@ -78,7 +104,24 @@ export default async function EvaluationFillPage({
     );
   }
 
-  if (cycle.endsAt && Math.floor(Date.now() / 1000) > cycle.endsAt) {
+  const now = Math.floor(Date.now() / 1000);
+
+  if (cycle.startsAt && now < cycle.startsAt) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>评价项目尚未开始</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-slate-500">
+            该评价项目尚未到开始时间，请稍后再试。
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (cycle.endsAt && now > cycle.endsAt) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
         <Card className="w-full max-w-md">

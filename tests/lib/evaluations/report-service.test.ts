@@ -80,7 +80,7 @@ describe("report service", () => {
     expect(peerGroup).toBeDefined();
     expect(peerGroup!.count).toBe(1);
     expect(peerGroup!.hidden).toBe(true); // below threshold 3
-    expect(peerGroup!.average).toBe(4);
+    expect(peerGroup!.average).toBe(0); // hidden data is zeroed
   });
 
   it("returns text answers for visible groups only", async () => {

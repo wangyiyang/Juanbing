@@ -1,4 +1,4 @@
-import { eq, like, or } from "drizzle-orm";
+import { and, eq, like, or } from "drizzle-orm";
 
 import { db } from "@/lib/db/client";
 import { employees } from "@/lib/db/schema";
@@ -103,7 +103,7 @@ export async function searchEmployees(
       employees.status,
       status as "active" | "inactive",
     );
-    conditions = conditions ? or(conditions, statusCondition) : statusCondition;
+    conditions = conditions ? and(conditions, statusCondition) : statusCondition;
   }
 
   const rows = conditions

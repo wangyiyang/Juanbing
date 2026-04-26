@@ -1,6 +1,8 @@
+import { and, eq } from "drizzle-orm";
+
 import { findEmployeeById } from "@/lib/employees/repository";
 import { db } from "@/lib/db/client";
-import { surveyResponses } from "@/lib/db/schema";
+import { evaluationAssignments, surveyResponses } from "@/lib/db/schema";
 import { ApiError } from "@/lib/http/api-error";
 import {
   findAssignmentByToken,
@@ -11,7 +13,6 @@ import {
   listEvaluationAssignments,
   listEvaluationCycles,
   listEvaluationSubjects,
-  markAssignmentSubmitted,
   setEvaluationCycleStatus,
   updateEvaluationCycleById,
 } from "@/lib/evaluations/repository";
@@ -182,7 +183,13 @@ export async function submitEvaluationAssignmentResponse(
     throw new ApiError(403, "评价项目尚未开始");
   }
 
-  if (cycle.endsAt && Math.floor(Date.now() / 1000) > cycle.endsAt) {
+  const now = Math.floor(Date.now() / 1000);
+
+  if (cycle.startsAt && now < cycle.startsAt) {
+    throw new ApiError(403, "评价项目尚未开始");
+  }
+
+  if (cycle.endsAt && now > cycle.endsAt) {
     throw new ApiError(403, "评价项目已结束");
   }
 
@@ -205,19 +212,39 @@ export async function submitEvaluationAssignmentResponse(
     ]),
   );
 
-  const result = db
-    .insert(surveyResponses)
-    .values({
-      surveyId: cycle.surveyId,
-      answers: JSON.stringify(answers),
-      respondentId: `evaluation-assignment:${assignment.id}`,
-      durationSeconds: parsed.duration_seconds ?? null,
-      createdAt: Math.floor(Date.now() / 1000),
-    })
-    .run();
+  return db.transaction((tx) => {
+    const result = tx
+      .insert(surveyResponses)
+      .values({
+        surveyId: cycle.surveyId,
+        answers: JSON.stringify(answers),
+        respondentId: `evaluation-assignment:${assignment.id}`,
+        durationSeconds: parsed.duration_seconds ?? null,
+        createdAt: now,
+      })
+      .run();
 
-  const responseId = Number(result.lastInsertRowid);
-  await markAssignmentSubmitted(assignment.id, responseId);
+    const responseId = Number(result.lastInsertRowid);
 
-  return { success: true };
+    const updateResult = tx
+      .update(evaluationAssignments)
+      .set({
+        status: "submitted",
+        responseId,
+        submittedAt: now,
+      })
+      .where(
+        and(
+          eq(evaluationAssignments.id, assignment.id),
+          eq(evaluationAssignments.status, "pending"),
+        ),
+      )
+      .run();
+
+    if (updateResult.changes === 0) {
+      throw new ApiError(409, "该评价任务已完成");
+    }
+
+    return { success: true };
+  });
 }

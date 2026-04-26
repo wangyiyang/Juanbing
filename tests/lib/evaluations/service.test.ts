@@ -6,7 +6,6 @@ import {
   addEvaluationSubject,
   closeEvaluationCycle,
   createEvaluationCycle,
-  getAssignmentByToken,
   getEvaluationCycleById,
   publishEvaluationCycle,
   submitEvaluationAssignmentResponse,

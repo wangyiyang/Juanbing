@@ -104,8 +104,6 @@ export async function buildSubjectReport(
   const survey = await getSurveyById(cycle.surveyId);
 
   const responseMap = new Map(responses.map((r) => [r.id, r]));
-  const assignmentMap = new Map(assignments.map((a) => [a.id, a]));
-
   const ratingQuestions =
     survey?.questions.filter((q) => q.type === "rating") ?? [];
   const textQuestions =
@@ -144,7 +142,7 @@ export async function buildSubjectReport(
       );
       groupArray.push({
         relationship,
-        average: data.count > 0 ? Math.round((data.sum / data.count) * 100) / 100 : 0,
+        average: visible ? (data.count > 0 ? Math.round((data.sum / data.count) * 100) / 100 : 0) : 0,
         count: data.count,
         hidden: !visible,
       });
@@ -183,7 +181,7 @@ export async function buildSubjectReport(
       );
       groupArray.push({
         relationship,
-        answers,
+        answers: visible ? answers : [],
         hidden: !visible,
       });
     }
