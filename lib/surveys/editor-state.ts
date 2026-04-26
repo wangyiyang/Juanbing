@@ -29,6 +29,7 @@ export type EditorAction =
   | { type: "addQuestion"; questionType: QuestionType }
   | { type: "selectQuestion"; clientId: string }
   | { type: "moveQuestionUp"; clientId: string }
+  | { type: "deleteQuestion"; clientId: string }
   | { type: "updateQuestion"; clientId: string; patch: Partial<EditorQuestion> };
 
 function normalizeQuestionOrder(questions: EditorQuestion[]) {
@@ -113,6 +114,19 @@ export function editorReducer(state: EditorState, action: EditorAction) {
       return {
         ...state,
         questions: normalizeQuestionOrder(next),
+      };
+    }
+    case "deleteQuestion": {
+      const next = state.questions.filter(
+        (question) => question.clientId !== action.clientId,
+      );
+      return {
+        ...state,
+        questions: normalizeQuestionOrder(next),
+        selectedQuestionId:
+          state.selectedQuestionId === action.clientId
+            ? next[0]?.clientId ?? null
+            : state.selectedQuestionId,
       };
     }
     case "updateQuestion":
