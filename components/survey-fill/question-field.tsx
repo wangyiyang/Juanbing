@@ -1,6 +1,13 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type {
   SurveyAnswerValue,
@@ -89,6 +96,23 @@ export function QuestionField({
           </label>
         ))}
       </div>
+    );
+  }
+
+  if (question.type === "dropdown") {
+    return (
+      <Select value={typeof value === "string" ? value : ""} onValueChange={(newValue) => onChange(newValue)}>
+        <SelectTrigger>
+          <SelectValue placeholder="请选择" />
+        </SelectTrigger>
+        <SelectContent>
+          {question.options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     );
   }
 
