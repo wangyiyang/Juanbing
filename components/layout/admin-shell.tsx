@@ -39,6 +39,18 @@ export function AdminShell({
             >
               问卷管理
             </Link>
+            <Link
+              className="text-slate-500 transition-colors hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
+              href="/employees"
+            >
+              员工
+            </Link>
+            <Link
+              className="text-slate-500 transition-colors hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
+              href="/evaluations"
+            >
+              360 环评
+            </Link>
             <ThemeToggle />
           </nav>
         </div>
