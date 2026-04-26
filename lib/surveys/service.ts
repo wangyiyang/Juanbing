@@ -9,6 +9,7 @@ import {
   listSurveySummaries,
   removeSurvey,
   replaceSurvey,
+  searchSurveySummaries,
 } from "@/lib/surveys/repository";
 import type { SurveyInput, SurveyStatus } from "@/lib/surveys/types";
 import { surveyInputSchema } from "@/lib/surveys/validators";
@@ -36,7 +37,10 @@ export async function getSurveyById(id: number) {
   return findSurveyById(id);
 }
 
-export async function listSurveys() {
+export async function listSurveys(query?: string, status?: string) {
+  if (query || status) {
+    return searchSurveySummaries(query, status);
+  }
   return listSurveySummaries();
 }
 

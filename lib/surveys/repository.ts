@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, like, or } from "drizzle-orm";
 
 import { db } from "@/lib/db/client";
 import {
@@ -200,6 +200,38 @@ export async function listSurveySummaries() {
   } catch (error) {
     console.error("[repository] listSurveySummaries failed:", error);
     throw new Error("数据库查询失败：无法加载问卷列表");
+  }
+}
+
+export async function searchSurveySummaries(query?: string, status?: string) {
+  try {
+    let conditions = undefined;
+
+    if (query) {
+      conditions = or(
+        like(surveys.title, `%${query}%`),
+        like(surveys.description, `%${query}%`),
+      );
+    }
+
+    if (status) {
+      const statusCondition = eq(surveys.status, status as "draft" | "published" | "closed");
+      conditions = conditions ? conditions : statusCondition;
+    }
+
+    if (conditions) {
+      return db
+        .select()
+        .from(surveys)
+        .where(conditions)
+        .orderBy(asc(surveys.createdAt))
+        .all();
+    }
+
+    return db.select().from(surveys).orderBy(asc(surveys.createdAt)).all();
+  } catch (error) {
+    console.error("[repository] searchSurveySummaries failed:", error);
+    throw new Error("数据库查询失败：无法搜索问卷");
   }
 }
 

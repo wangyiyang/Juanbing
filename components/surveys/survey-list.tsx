@@ -44,7 +44,9 @@ import {
   EyeOff,
   FileText,
   Plus,
+  Search,
   Trash2,
+  X,
 } from "lucide-react";
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
@@ -70,6 +72,21 @@ export function SurveyList({
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [copied, setCopied] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState<string>("");
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    if (searchQuery) params.set("query", searchQuery);
+    if (filterStatus) params.set("status", filterStatus);
+    router.push(`/surveys?${params.toString()}`);
+  };
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setFilterStatus("");
+    router.push("/surveys");
+  };
 
   const handleShare = (surveyId: number, status: string) => {
     if (status !== "published") {
@@ -130,7 +147,39 @@ export function SurveyList({
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Input
+              className="pl-9"
+              placeholder="搜索问卷标题或描述..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            />
+          </div>
+          <select
+            className="h-8 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="">全部状态</option>
+            <option value="draft">草稿</option>
+            <option value="published">已发布</option>
+            <option value="closed">已关闭</option>
+          </select>
+          <Button size="sm" onClick={handleSearch}>
+            <Search className="mr-1 h-4 w-4" />
+            搜索
+          </Button>
+          {(searchQuery || filterStatus) && (
+            <Button size="sm" variant="ghost" onClick={clearFilters}>
+              <X className="mr-1 h-4 w-4" />
+              清除
+            </Button>
+          )}
+        </div>
         <p className="text-sm text-slate-500">共 {surveys.length} 个问卷</p>
       </div>
 
