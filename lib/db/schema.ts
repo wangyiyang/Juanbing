@@ -1,5 +1,12 @@
 import { relations, sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+  index,
+  integer,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
+import type { AnySQLiteColumn } from "drizzle-orm/sqlite-core";
 
 export const surveys = sqliteTable("surveys", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -85,3 +92,103 @@ export const surveyResponseRelations = relations(surveyResponses, ({ one }) => (
     references: [surveys.id],
   }),
 }));
+
+export const employees = sqliteTable(
+  "employees",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    employeeNo: text("employee_no"),
+    name: text("name").notNull(),
+    email: text("email"),
+    department: text("department"),
+    title: text("title"),
+    managerId: integer("manager_id").references(
+      (): AnySQLiteColumn => employees.id,
+      {
+        onDelete: "set null",
+      },
+    ),
+    status: text("status", { enum: ["active", "inactive"] })
+      .notNull()
+      .default("active"),
+    createdAt: integer("created_at").notNull().default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at").notNull().default(sql`(unixepoch())`),
+  },
+  (table) => [
+    uniqueIndex("employees_employee_no_unique").on(table.employeeNo),
+    uniqueIndex("employees_email_unique").on(table.email),
+    index("employees_name_idx").on(table.name),
+  ],
+);
+
+export const evaluationCycles = sqliteTable("evaluation_cycles", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  title: text("title").notNull(),
+  description: text("description"),
+  status: text("status", { enum: ["draft", "active", "closed"] })
+    .notNull()
+    .default("draft"),
+  surveyId: integer("survey_id")
+    .notNull()
+    .references(() => surveys.id, { onDelete: "restrict" }),
+  startsAt: integer("starts_at"),
+  endsAt: integer("ends_at"),
+  anonymityThreshold: integer("anonymity_threshold").notNull().default(3),
+  createdAt: integer("created_at").notNull().default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at").notNull().default(sql`(unixepoch())`),
+});
+
+export const evaluationSubjects = sqliteTable(
+  "evaluation_subjects",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    cycleId: integer("cycle_id")
+      .notNull()
+      .references(() => evaluationCycles.id, { onDelete: "cascade" }),
+    employeeId: integer("employee_id")
+      .notNull()
+      .references(() => employees.id, { onDelete: "restrict" }),
+    status: text("status", { enum: ["active", "removed"] })
+      .notNull()
+      .default("active"),
+    createdAt: integer("created_at").notNull().default(sql`(unixepoch())`),
+  },
+  (table) => [
+    uniqueIndex("evaluation_subjects_cycle_employee_unique").on(
+      table.cycleId,
+      table.employeeId,
+    ),
+  ],
+);
+
+export const evaluationAssignments = sqliteTable(
+  "evaluation_assignments",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    cycleId: integer("cycle_id")
+      .notNull()
+      .references(() => evaluationCycles.id, { onDelete: "cascade" }),
+    subjectId: integer("subject_id")
+      .notNull()
+      .references(() => evaluationSubjects.id, { onDelete: "cascade" }),
+    raterEmployeeId: integer("rater_employee_id").references(() => employees.id, {
+      onDelete: "set null",
+    }),
+    relationship: text("relationship", {
+      enum: ["self", "manager", "peer", "direct_report", "other"],
+    }).notNull(),
+    token: text("token").notNull().unique(),
+    status: text("status", { enum: ["pending", "submitted", "expired"] })
+      .notNull()
+      .default("pending"),
+    responseId: integer("response_id").references(() => surveyResponses.id, {
+      onDelete: "set null",
+    }),
+    createdAt: integer("created_at").notNull().default(sql`(unixepoch())`),
+    submittedAt: integer("submitted_at"),
+  },
+  (table) => [
+    index("evaluation_assignments_token_idx").on(table.token),
+    index("evaluation_assignments_subject_idx").on(table.subjectId),
+  ],
+);
