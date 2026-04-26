@@ -152,6 +152,14 @@ export async function addEvaluationAssignment(
   return assignments.find((a) => a.id === id)!;
 }
 
+export async function getAssignmentsByCycleId(cycleId: number) {
+  return listEvaluationAssignments(cycleId);
+}
+
+export async function getSubjectsByCycleId(cycleId: number) {
+  return listEvaluationSubjects(cycleId);
+}
+
 export async function getAssignmentByToken(token: string) {
   return findAssignmentByToken(token);
 }
