@@ -31,4 +31,24 @@ describe("QuestionField", () => {
 
     expect(onChange).toHaveBeenCalledWith("shanghai");
   });
+
+  const dateQuestion: SurveyQuestionDetail = {
+    id: 2,
+    type: "date",
+    title: "请选择日期",
+    required: false,
+    orderIndex: 1,
+    config: null,
+    options: [],
+  };
+
+  it("renders date input and calls onChange when changed", async () => {
+    const onChange = vi.fn();
+    render(<QuestionField question={dateQuestion} value={undefined} onChange={onChange} />);
+
+    const input = screen.getByLabelText("请选择日期");
+    await userEvent.type(input, "2026-05-01");
+
+    expect(onChange).toHaveBeenCalledWith("2026-05-01");
+  });
 });

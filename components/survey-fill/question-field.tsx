@@ -116,6 +116,17 @@ export function QuestionField({
     );
   }
 
+  if (question.type === "date") {
+    return (
+      <Input
+        type="date"
+        value={typeof value === "string" ? value : ""}
+        onChange={(event) => onChange(event.target.value)}
+        aria-label={question.title}
+      />
+    );
+  }
+
   return (
     <div className="text-sm text-slate-500">
       当前题型待扩展
