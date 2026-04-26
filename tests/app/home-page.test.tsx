@@ -9,7 +9,7 @@ describe("HomePage", () => {
     render(createElement(HomePage));
 
     expect(
-      screen.getByRole("heading", { name: "Juanbing 问卷平台" }),
+      screen.getByRole("heading", { name: "卷饼问卷平台" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "进入管理台" })).toHaveAttribute(
       "href",
