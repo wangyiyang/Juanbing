@@ -26,6 +26,7 @@
 .worktrees/
 data/*.sqlite
 data/*.sqlite-*
+*.db
 
 # debug
 npm-debug.log*
