@@ -8,6 +8,8 @@ const MVP_TYPES: Array<{ type: QuestionType; label: string }> = [
   { type: "multiple_choice", label: "多选题" },
   { type: "text", label: "填空题" },
   { type: "rating", label: "评分题" },
+  { type: "dropdown", label: "下拉选择" },
+  { type: "date", label: "日期选择" },
 ];
 
 export function ComponentPalette({
