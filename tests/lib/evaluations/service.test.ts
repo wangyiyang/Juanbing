@@ -168,3 +168,79 @@ describe("evaluation service", () => {
     ).rejects.toThrow("该评价任务已完成");
   });
 });
+
+import { createEvaluationTemplate } from "@/lib/evaluations/template-service";
+
+describe("create cycle from template", () => {
+  beforeEach(() => {
+    resetDatabase();
+  });
+
+  it("should create cycle with templateId", async () => {
+    const survey = await createSurvey({
+      title: "360 评价表",
+      questions: [
+        {
+          type: "rating",
+          title: "沟通协作",
+          required: true,
+          orderIndex: 0,
+          config: { maxRating: 5 },
+          options: [],
+        },
+      ],
+    });
+
+    const template = await createEvaluationTemplate({
+      name: "季度 360",
+      surveyId: survey.id,
+      anonymityThreshold: 5,
+      relationshipRules: [{ type: "self", count: 1, required: true }],
+      timeRule: { type: "relative", durationDays: 14 },
+    });
+
+    const cycle = await createEvaluationCycle({
+      title: "2026 Q2",
+      surveyId: survey.id,
+      templateId: template.id,
+    });
+
+    expect(cycle.templateId).toBe(template.id);
+  });
+
+  it("should reject inactive template", async () => {
+    const survey = await createSurvey({
+      title: "360 评价表",
+      questions: [
+        {
+          type: "rating",
+          title: "沟通协作",
+          required: true,
+          orderIndex: 0,
+          config: { maxRating: 5 },
+          options: [],
+        },
+      ],
+    });
+
+    const template = await createEvaluationTemplate({
+      name: "季度 360",
+      surveyId: survey.id,
+      anonymityThreshold: 5,
+      relationshipRules: [{ type: "self", count: 1, required: true }],
+      timeRule: { type: "relative", durationDays: 14 },
+    });
+
+    // Archive the template
+    const { archiveEvaluationTemplate } = await import("@/lib/evaluations/template-service");
+    await archiveEvaluationTemplate(template.id);
+
+    await expect(
+      createEvaluationCycle({
+        title: "2026 Q2",
+        surveyId: survey.id,
+        templateId: template.id,
+      })
+    ).rejects.toThrow("模板不存在或已归档");
+  });
+});

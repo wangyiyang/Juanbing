@@ -30,6 +30,7 @@ export async function insertEvaluationCycle(
       startsAt: input.startsAt ?? null,
       endsAt: input.endsAt ?? null,
       anonymityThreshold: input.anonymityThreshold ?? 3,
+      templateId: input.templateId ?? null,
       createdAt: now,
       updatedAt: now,
     })

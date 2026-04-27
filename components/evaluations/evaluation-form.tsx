@@ -9,6 +9,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
+import { AnonymityThresholdField } from "./anonymity-threshold-field";
+import { TemplateSelector } from "./template-selector";
+import type { EvaluationTemplate } from "@/lib/evaluations/template-types";
+
+export function formatDateTimeLocal(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
 
 export function EvaluationForm({
   surveys,
@@ -23,8 +35,9 @@ export function EvaluationForm({
     surveyId: "",
     startsAt: "",
     endsAt: "",
-    anonymityThreshold: "3",
+    anonymityThreshold: 3,
   });
+  const [selectedTemplate, setSelectedTemplate] = useState<EvaluationTemplate | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +54,8 @@ export function EvaluationForm({
         endsAt: form.endsAt
           ? Math.floor(new Date(form.endsAt).getTime() / 1000)
           : null,
-        anonymityThreshold: Number(form.anonymityThreshold),
+        anonymityThreshold: form.anonymityThreshold,
+        templateId: selectedTemplate?.id ?? null,
       };
 
       const response = await fetch("/api/evaluations", {
@@ -73,6 +87,31 @@ export function EvaluationForm({
       <Card>
         <CardContent className="p-6">
           <form className="space-y-4" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <Label>使用模板</Label>
+              <TemplateSelector
+                value={selectedTemplate?.id}
+                onChange={(template) => {
+                  setSelectedTemplate(template);
+                  if (template) {
+                    setForm((f) => ({
+                      ...f,
+                      title: `${template.name}（${new Date().getFullYear()}）`,
+                      surveyId: String(template.surveyId),
+                      anonymityThreshold: template.anonymityThreshold,
+                    }));
+                    const today = new Date();
+                    const end = new Date(today);
+                    end.setDate(today.getDate() + template.timeRule.durationDays);
+                    setForm((f) => ({
+                      ...f,
+                      startsAt: formatDateTimeLocal(today),
+                      endsAt: formatDateTimeLocal(end),
+                    }));
+                  }
+                }}
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="title">项目名称 *</Label>
               <Input
@@ -137,25 +176,10 @@ export function EvaluationForm({
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="anonymityThreshold">匿名阈值</Label>
-              <Input
-                id="anonymityThreshold"
-                type="number"
-                min={2}
-                max={10}
-                value={form.anonymityThreshold}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    anonymityThreshold: e.target.value,
-                  }))
-                }
-              />
-              <p className="text-xs text-slate-500">
-                peer、direct_report、other 关系组的评分和文本只有达到该人数才单独展示
-              </p>
-            </div>
+            <AnonymityThresholdField
+              value={form.anonymityThreshold}
+              onChange={(value) => setForm((f) => ({ ...f, anonymityThreshold: value }))}
+            />
             <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"

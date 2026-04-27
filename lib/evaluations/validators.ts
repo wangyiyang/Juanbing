@@ -6,7 +6,8 @@ export const evaluationCycleInputSchema = z.object({
   surveyId: z.number().int().positive(),
   startsAt: z.number().int().nullable().optional(),
   endsAt: z.number().int().nullable().optional(),
-  anonymityThreshold: z.number().int().min(2).max(10).optional(),
+  anonymityThreshold: z.number().int().min(1).max(20).optional(),
+  templateId: z.number().int().positive().nullable().optional(),
 });
 
 export const evaluationAssignmentInputSchema = z.object({

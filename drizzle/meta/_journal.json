@@ -15,6 +15,13 @@
       "when": 1777206725972,
       "tag": "0001_employee_360_review",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1777278925262,
+      "tag": "0002_evaluation_templates",
+      "breakpoints": true
     }
   ]
 }

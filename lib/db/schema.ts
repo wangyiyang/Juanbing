@@ -121,6 +121,27 @@ export const employees = sqliteTable(
   ],
 );
 
+export const evaluationTemplates = sqliteTable("evaluation_templates", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  description: text("description"),
+  surveyId: integer("survey_id")
+    .notNull()
+    .references(() => surveys.id, { onDelete: "restrict" }),
+  anonymityThreshold: integer("anonymity_threshold").notNull().default(3),
+  relationshipRules: text("relationship_rules").notNull(),
+  timeRule: text("time_rule").notNull(),
+  isBuiltin: integer("is_builtin", { mode: "boolean" }).notNull().default(false),
+  createdBy: integer("created_by").references(() => employees.id, {
+    onDelete: "set null",
+  }),
+  status: text("status", { enum: ["active", "archived"] })
+    .notNull()
+    .default("active"),
+  createdAt: integer("created_at").notNull().default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at").notNull().default(sql`(unixepoch())`),
+});
+
 export const evaluationCycles = sqliteTable("evaluation_cycles", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title").notNull(),
@@ -134,6 +155,9 @@ export const evaluationCycles = sqliteTable("evaluation_cycles", {
   startsAt: integer("starts_at"),
   endsAt: integer("ends_at"),
   anonymityThreshold: integer("anonymity_threshold").notNull().default(3),
+  templateId: integer("template_id").references(() => evaluationTemplates.id, {
+    onDelete: "set null",
+  }),
   createdAt: integer("created_at").notNull().default(sql`(unixepoch())`),
   updatedAt: integer("updated_at").notNull().default(sql`(unixepoch())`),
 });
