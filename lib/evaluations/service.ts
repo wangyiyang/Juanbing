@@ -29,6 +29,7 @@ import {
   evaluationCycleInputSchema,
 } from "@/lib/evaluations/validators";
 import { getSurveyById } from "@/lib/surveys/service";
+import { getEvaluationTemplateById } from "./template-service";
 import { submitResponsePayloadSchema, validateAnswersAgainstSurvey } from "@/lib/surveys/validators";
 import { sanitizePlainText } from "@/lib/security/sanitize";
 import type { SurveyAnswerValue } from "@/lib/surveys/types";
@@ -54,6 +55,14 @@ export async function createEvaluationCycle(input: EvaluationCycleInput) {
   if (!survey) {
     throw new ApiError(404, "问卷不存在");
   }
+
+  if (parsed.templateId) {
+    const template = await getEvaluationTemplateById(parsed.templateId);
+    if (!template || template.status !== "active") {
+      throw new ApiError(404, "模板不存在或已归档");
+    }
+  }
+
   const id = await insertEvaluationCycle(parsed);
   return (await findEvaluationCycleById(id))!;
 }

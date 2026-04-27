@@ -15,6 +15,7 @@ export type EvaluationCycleInput = {
   startsAt?: number | null;
   endsAt?: number | null;
   anonymityThreshold?: number;
+  templateId?: number | null;
 };
 
 export type EvaluationAssignmentInput = {
