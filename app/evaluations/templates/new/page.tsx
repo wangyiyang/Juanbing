@@ -3,11 +3,12 @@
 import { useRouter } from "next/navigation";
 
 import { TemplateForm } from "@/components/evaluations/template-form";
+import type { TemplateFormProps } from "@/components/evaluations/template-form";
 
 export default function NewTemplatePage() {
   const router = useRouter();
 
-  const handleSubmit = async (data: Parameters<typeof TemplateForm>["onSubmit"] extends (d: infer T) => unknown ? T : never) => {
+  const handleSubmit = async (data: Parameters<Required<TemplateFormProps>["onSubmit"]>[0]) => {
     const res = await fetch("/api/evaluation-templates", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

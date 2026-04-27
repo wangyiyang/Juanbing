@@ -15,7 +15,7 @@ const DEFAULT_RULES: RelationshipRule[] = [
   { type: "direct_report", count: 3, required: false },
 ];
 
-interface TemplateFormProps {
+export interface TemplateFormProps {
   initial?: EvaluationTemplate | null;
   onSubmit: (data: {
     name: string;

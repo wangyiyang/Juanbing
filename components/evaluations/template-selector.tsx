@@ -25,7 +25,11 @@ export function TemplateSelector({ value, onChange }: TemplateSelectorProps) {
       .then((data) => setTemplates(data.data ?? []));
   }, []);
 
-  const handleChange = (id: string) => {
+  const handleChange = (id: string | null) => {
+    if (!id) {
+      onChange(null);
+      return;
+    }
     const template = templates.find((t) => t.id === Number(id));
     onChange(template ?? null);
   };
