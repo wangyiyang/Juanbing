@@ -5,6 +5,7 @@ export function resetDatabase() {
     DELETE FROM evaluation_assignments;
     DELETE FROM evaluation_subjects;
     DELETE FROM evaluation_cycles;
+    DELETE FROM evaluation_templates;
     DELETE FROM employees;
     DELETE FROM survey_options;
     DELETE FROM survey_questions;
