@@ -37,6 +37,11 @@ export default async function EvaluationDetailPage({
   return (
     <AdminShell title={cycle.title}>
       <div className="space-y-6">
+        {cycle.templateId && (
+          <div className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+            基于模板创建
+          </div>
+        )}
         <ProgressOverview
           cycle={cycle}
           subjects={subjects}
